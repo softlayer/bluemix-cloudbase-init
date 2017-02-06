@@ -19,14 +19,14 @@ CD_LOCATIONS = {"partition"}
 LOG = oslo_logging.getLogger(__name__)
 
 
-class SoftLayerService(baseopenstackservice.BaseOpenStackService):
+class BluemixService(baseopenstackservice.BaseOpenStackService):
 
     def __init__(self):
-        super(SoftLayerService, self).__init__()
+        super(BluemixService, self).__init__()
         self._metadata_path = None
 
     def load(self):
-        super(SoftLayerService, self).load()
+        super(BluemixService, self).load()
 
         self._searched_types = set(CD_TYPES)
         self._searched_locations = set(CD_LOCATIONS)
@@ -43,7 +43,7 @@ class SoftLayerService(baseopenstackservice.BaseOpenStackService):
 
     def get_network_details(self):
         self._check_persistent_routes()
-        return super(SoftLayerService, self).get_network_details()
+        return super(BluemixService, self).get_network_details()
 
     def _get_data(self, path):
         norm_path = os.path.normpath(os.path.join(self._metadata_path, path))
