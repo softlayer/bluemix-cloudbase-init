@@ -8,7 +8,9 @@ from oslo_config import cfg
 from oslo_log import log as oslo_logging
 from six.moves.urllib import error
 
+from cloudbaseinit import constant
 from cloudbaseinit import exception
+from cloudbaseinit import conf as cloudbaseinit_conf
 from cloudbaseinit.metadata.services import base
 from cloudbaseinit.metadata.services import baseopenstackservice
 from cloudbaseinit.metadata.services.osconfigdrive import factory
@@ -16,10 +18,11 @@ from cloudbaseinit.osutils import factory as osutils_factory
 from cloudbaseinit.osutils.windows import WindowsUtils
 from cloudbaseinit.utils import encoding
 
-CD_TYPES = {"vfat"}
-CD_LOCATIONS = {"partition"}
-
+CONF = cloudbaseinit_conf.CONF
 LOG = oslo_logging.getLogger(__name__)
+
+CD_TYPES = constant.CD_TYPES
+CD_LOCATIONS = constant.CD_LOCATIONS
 
 
 class BluemixService(baseopenstackservice.BaseOpenStackService):
@@ -31,12 +34,34 @@ class BluemixService(baseopenstackservice.BaseOpenStackService):
         self._metadata_path = None
         self._enable_retry = True
 
+    def _preprocess_options(self):
+        """Process which types and locations to search for metadata."""
+        self._searched_types = set(CONF.config_drive.types)
+        self._searched_locations = set(CONF.config_drive.locations)
+
+        # Deprecation backward compatibility.
+        if CONF.config_drive.raw_hdd:
+            self._searched_types.add("iso")
+            self._searched_locations.add("hdd")
+        if CONF.config_drive.cdrom:
+            self._searched_types.add("iso")
+            self._searched_locations.add("cdrom")
+        if CONF.config_drive.vfat:
+            self._searched_types.add("vfat")
+            self._searched_locations.add("hdd")
+
+        # Check for invalid option values.
+        if self._searched_types | CD_TYPES != CD_TYPES:
+            raise exception.CloudbaseInitException(
+                "Invalid Config Drive types %s", self._searched_types)
+        if self._searched_locations | CD_LOCATIONS != CD_LOCATIONS:
+            raise exception.CloudbaseInitException(
+                "Invalid Config Drive locations %s", self._searched_locations)
+
     def load(self):
         super(BluemixService, self).load()
 
-        self._searched_types = set(CD_TYPES)
-        self._searched_locations = set(CD_LOCATIONS)
-
+        self._preprocess_options()
         self._mgr = factory.get_config_drive_manager()
         found = self._mgr.get_config_drive_files(
             searched_types=self._searched_types,
@@ -48,6 +73,7 @@ class BluemixService(baseopenstackservice.BaseOpenStackService):
         return found
 
     def get_network_details(self):
+        """Parses through network data."""
         self._check_persistent_routes()
         return self._convert_network_data()
 
@@ -260,4 +286,3 @@ class AttributeDict(dict):
     __getattr__ = dict.get
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
-
