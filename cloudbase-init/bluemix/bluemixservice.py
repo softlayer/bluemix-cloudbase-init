@@ -266,8 +266,10 @@ class BluemixService(baseopenstackservice.BaseOpenStackService):
         """Returns authorization token headers used for posting password"""
         meta_data = self._get_meta_data()
 
-        config_token = meta_data.get('config_token')
-        header_value = "Bearer " + config_token
+        configuration_token = meta_data.get('configuration_token')
+        if configuration_token == None:
+            return None
+        header_value = "Bearer " + configuration_token
         headers = {'Authorization': header_value}
         return headers
 
