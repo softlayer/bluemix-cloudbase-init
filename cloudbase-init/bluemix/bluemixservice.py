@@ -171,11 +171,13 @@ class BluemixService(baseopenstackservice.BaseOpenStackService):
         nic_template = dict.fromkeys(base.NetworkDetails._fields)
 
         nics = []
+        dns_nameservers = self._get_dns_nameservers(network_data)
         for link in network_data.get('links', []):
             nic = AttributeDict(nic_template)
             # Must make mac uppercase to match windows adapter mac.
             nic.mac = link["ethernet_mac_address"].upper()
             nic.name = link["name"]
+            nic.dnsnameservers = dns_nameservers
             for network in network_data.get('networks', []):
                 # Each link can have multiple networks for ipv4 and ipv6.
                 # Skip if they don't match.
@@ -204,6 +206,14 @@ class BluemixService(baseopenstackservice.BaseOpenStackService):
         for route in network.get('routes', []):
             if route["network"] == "::":
                 nic.gateway6 = route["gateway"]
+
+    def _get_dns_nameservers(self, network_data):
+        """Sets dns nameserver information for all nics."""
+        dns_nameservers = []
+        for service in network_data.get('services', []):
+            if service["type"] == "dns":
+                dns_nameservers.append(service["address"])
+        return dns_nameservers
 
     def get_public_keys(self):
         """Get a list of all unique public keys found among the metadata"""
@@ -267,7 +277,7 @@ class BluemixService(baseopenstackservice.BaseOpenStackService):
         meta_data = self._get_meta_data()
 
         configuration_token = meta_data.get('configuration_token')
-        if configuration_token == None:
+        if configuration_token is None:
             return None
         header_value = "Bearer " + configuration_token
         headers = {'Authorization': header_value}
