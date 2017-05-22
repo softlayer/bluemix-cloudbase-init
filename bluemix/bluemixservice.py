@@ -1,10 +1,22 @@
+# Copyright 2012 Cloudbase Solutions Srl
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
 import os
 import shutil
 import re
-import requests
 import json
 
-from oslo_config import cfg
 from oslo_log import log as oslo_logging
 from six.moves.urllib import error
 
@@ -12,25 +24,31 @@ from cloudbaseinit import constant
 from cloudbaseinit import exception
 from cloudbaseinit import conf as cloudbaseinit_conf
 from cloudbaseinit.metadata.services import base
-from cloudbaseinit.metadata.services import baseopenstackservice
+from cloudbaseinit.metadata.services import baseopenstackservice as baseos
 from cloudbaseinit.metadata.services.osconfigdrive import factory
 from cloudbaseinit.osutils import factory as osutils_factory
 from cloudbaseinit.osutils.windows import WindowsUtils
 from cloudbaseinit.utils import encoding
 
+from bluemix.conf.bluemix import BluemixOptions
+
 CONF = cloudbaseinit_conf.CONF
+BluemixOptions(CONF).register()
 LOG = oslo_logging.getLogger(__name__)
 
 CD_TYPES = constant.CD_TYPES
 CD_LOCATIONS = constant.CD_LOCATIONS
 
 
-class BluemixService(baseopenstackservice.BaseOpenStackService):
+class BluemixService(base.BaseHTTPMetadataService, baseos.BaseOpenStackService):
     _NETWORK_DATA_JSON = "openstack/latest/network_data.json"
-    _DEFAULT_BASE_URL = "https://api.service.softlayer.com/rest/v3.1/"
 
     def __init__(self):
-        super(BluemixService, self).__init__()
+        super(BluemixService, self).__init__(
+            base_url=CONF.bluemix.endpoint_url,
+            https_allow_insecure=CONF.bluemix.https_allow_insecure,
+            https_ca_bundle=CONF.bluemix.https_ca_bundle)
+            
         self._metadata_path = None
         self._enable_retry = True
 
@@ -252,25 +270,6 @@ class BluemixService(baseopenstackservice.BaseOpenStackService):
         self._http_request(path, data=json.dumps(json_data), headers=headers)
         # return True here so that exec_with_retry knows to not retry anymore.
         return True
-
-    def _http_request(self, url, data=None, headers=None):
-        """Get content for received url."""
-        if not url.startswith("http"):
-            url = requests.compat.urljoin(self._DEFAULT_BASE_URL, url)
-        request_action = requests.get if not data else requests.post
-        if not data:
-            LOG.debug('Getting metadata from: %s', url)
-        else:
-            LOG.debug('Posting data to %s', url)
-
-        response = request_action(
-            url=url,
-            data=data,
-            headers=headers,
-            verify=False
-        )
-        response.raise_for_status()
-        return response.content
 
     def _configure_headers_from_metadata(self):
         """Returns authorization token headers used for posting password"""
