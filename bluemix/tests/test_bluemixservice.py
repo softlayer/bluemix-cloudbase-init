@@ -292,6 +292,8 @@ class TestBluemixService(unittest.TestCase):
         self.assertEqual('0A:0B:0C:0D:0E:0F', response[0].mac)
         self.assertEqual('eth1', response[1].name)
         self.assertEqual('0F:0E:0D:0C:0B:0A', response[1].mac)
+        mock_set_ipv4_network_details.assert_called_once()
+        mock_set_ipv6_network_details.assert_called_once()
 
     @mock.patch('cloudbaseinit.osutils.factory.get_os_utils')
     def _test_delete_static_route(self, mock_get_os_utils, err=None):
