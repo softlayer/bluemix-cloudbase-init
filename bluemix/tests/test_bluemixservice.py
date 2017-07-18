@@ -237,7 +237,6 @@ class TestBluemixService(unittest.TestCase):
         self.assertEqual('0:0:0:0:0:ffff:ffff:ff00', nic.netmask6)
         self.assertEqual('0:0:0:0:0:ffff:c0a8:101', nic.gateway6)
 
-
     @mock.patch('bluemix.bluemixservice.BluemixService'
                 '._set_ipv6_network_details')
     @mock.patch('bluemix.bluemixservice.BluemixService'
@@ -364,8 +363,8 @@ class TestBluemixService(unittest.TestCase):
                                             netmask=netmask,
                                             gateway=gateway)
 
-        mock_os_utils.execute_process.assert_called_once_with(['ROUTE', '-P', 'ADD',
-            network, 'MASK', netmask, gateway, 'METRIC', '1'])
+        mock_os_utils.execute_process.assert_called_once_with(['ROUTE', '-P',
+            'ADD', network, 'MASK', netmask, gateway, 'METRIC', '1'])
 
     def test_add_persistent_route(self):
         self._test_add_persistent_route()
@@ -449,7 +448,6 @@ class TestBluemixService(unittest.TestCase):
             '192.168.0.0', '255.255.0.0', '192.168.0.12')
         mock_delete_static_route.assert_not_called()
         mock_add_persistent_route.assert_not_called()
-
 
     @mock.patch('bluemix.bluemixservice.BluemixService._get_persistent_routes')
     def test_check_persistent_routes_empty_routes(self,
