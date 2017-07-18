@@ -169,7 +169,8 @@ class TestBluemixService(unittest.TestCase):
         mock_headers.return_value = 'fake headers'
 
         response = self._service._post_data(fake_path, fake_data)
-        mock_http_request.assert_called_once_with(fake_path,
+        mock_http_request.assert_called_once_with(
+            fake_path,
             data='{"parameters": ["fake data"]}',
             headers=mock_headers.return_value)
         self.assertTrue(response)
@@ -303,8 +304,8 @@ class TestBluemixService(unittest.TestCase):
         mock_get_os_utils.return_value = mock_os_utils
         self._service._delete_static_route('192.168.1.0')
 
-        mock_os_utils.execute_process.assert_called_once_with(['ROUTE',
-            'DELETE', network])
+        mock_os_utils.execute_process.assert_called_once_with(
+            ['ROUTE', 'DELETE', network])
 
     def test_delete_static_route(self):
         self._test_delete_static_route()
@@ -321,8 +322,8 @@ class TestBluemixService(unittest.TestCase):
         mock_get_os_utils.return_value = mock_os_utils
 
         return self._service._check_existing_route_matches(network=network,
-                                                          netmask=netmask,
-                                                          gateway=gateway)
+                                                           netmask=netmask,
+                                                           gateway=gateway)
 
     def test_check_existing_route_matches(self):
         network = '192.168.1.0'
@@ -363,8 +364,9 @@ class TestBluemixService(unittest.TestCase):
                                             netmask=netmask,
                                             gateway=gateway)
 
-        mock_os_utils.execute_process.assert_called_once_with(['ROUTE', '-P',
-            'ADD', network, 'MASK', netmask, gateway, 'METRIC', '1'])
+        mock_os_utils.execute_process.assert_called_once_with(
+            ['ROUTE', '-P', 'ADD', network, 'MASK', netmask, gateway,
+             'METRIC', '1'])
 
     def test_add_persistent_route(self):
         self._test_add_persistent_route()
@@ -376,7 +378,7 @@ class TestBluemixService(unittest.TestCase):
     @mock.patch('bluemix.bluemixservice.BluemixService._add_persistent_route')
     @mock.patch('bluemix.bluemixservice.BluemixService._delete_static_route')
     @mock.patch('bluemix.bluemixservice.BluemixService'
-        '._check_existing_route_matches')
+                '._check_existing_route_matches')
     @mock.patch('bluemix.bluemixservice.BluemixService._get_persistent_routes')
     def test_check_persistent_routes(self, mock_get_persistent_routes,
                                      mock_check_existing_route_matches,
@@ -415,14 +417,15 @@ class TestBluemixService(unittest.TestCase):
     @mock.patch('bluemix.bluemixservice.BluemixService._add_persistent_route')
     @mock.patch('bluemix.bluemixservice.BluemixService._delete_static_route')
     @mock.patch('bluemix.bluemixservice.BluemixService'
-        '._check_existing_route_matches')
+                '._check_existing_route_matches')
     @mock.patch('bluemix.bluemixservice.BluemixService._get_persistent_routes')
-    def test_check_persistent_routes_existing_route(self,
-                                     mock_get_persistent_routes,
-                                     mock_check_existing_route_matches,
-                                     mock_delete_static_route,
-                                     mock_add_persistent_route,
-                                     mock_get_os_utils):
+    def test_check_persistent_routes_existing_route(
+            self,
+            mock_get_persistent_routes,
+            mock_check_existing_route_matches,
+            mock_delete_static_route,
+            mock_add_persistent_route,
+            mock_get_os_utils):
         routes = [
             {
                 "network": "192.168.0.0",
