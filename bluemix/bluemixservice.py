@@ -19,6 +19,7 @@ import json
 
 from oslo_log import log as oslo_logging
 from six.moves.urllib import error
+from netaddr import IPAddress
 
 from cloudbaseinit import constant
 from cloudbaseinit import exception
@@ -48,7 +49,7 @@ class BluemixService(base.BaseHTTPMetadataService, baseos.BaseOpenStackService):
             base_url=CONF.bluemix.endpoint_url,
             https_allow_insecure=CONF.bluemix.https_allow_insecure,
             https_ca_bundle=CONF.bluemix.https_ca_bundle)
-            
+
         self._metadata_path = None
         self._enable_retry = True
 
@@ -220,10 +221,17 @@ class BluemixService(base.BaseHTTPMetadataService, baseos.BaseOpenStackService):
     def _set_ipv6_network_details(self, network, nic):
         """Sets ipv6 information for NetworkDetails"""
         nic.address6 = network["ip_address"]
-        nic.netmask6 = network["netmask"]
+        nic.netmask6 = self._ipv6_netmask_to_prefix(network["netmask"])
         for route in network.get('routes', []):
             if route["network"] == "::":
                 nic.gateway6 = route["gateway"]
+
+    def _ipv6_netmask_to_prefix(self, netmask):
+        if IPAddress(netmask).is_netmask():
+            return IPAddress(netmask).netmask_bits()
+        else:
+            LOG.debug("IPv6 netmask is not valid")
+            return netmask
 
     def _get_dns_nameservers(self, network_data):
         """Sets dns nameserver information for all nics."""
