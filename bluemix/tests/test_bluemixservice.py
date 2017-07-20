@@ -266,31 +266,6 @@ class TestBluemixService(unittest.TestCase):
         self.assertEqual('192.168.1.1', nic.gateway)
 
     @mock.patch('bluemix.bluemixservice.BluemixService'
-                '._ipv6_netmask_to_prefix')
-    def test_set_ipv6_network_details(self, mock_ipv6_netmask_to_prefix):
-        network = {
-            'ip_address': '0:0:0:0:0:ffff:c0a8:102',
-            'netmask': '0:0:0:0:0:ffff:ffff:ff00',
-            'routes': [
-                {
-                    'network': '::',
-                    'netmask': '::',
-                    'gateway': '0:0:0:0:0:ffff:c0a8:101'
-                }
-            ]
-        }
-
-        mock_ipv6_netmask_to_prefix.return_value = 64
-
-        nic = mock.MagicMock()
-        self._service._set_ipv6_network_details(network, nic)
-        mock_ipv6_netmask_to_prefix.assert_called_once()
-
-        self.assertEqual('0:0:0:0:0:ffff:c0a8:102', nic.address6)
-        self.assertEqual(64, nic.netmask6)
-        self.assertEqual('0:0:0:0:0:ffff:c0a8:101', nic.gateway6)
-
-    @mock.patch('bluemix.bluemixservice.BluemixService'
                 '._set_ipv6_network_details')
     @mock.patch('bluemix.bluemixservice.BluemixService'
                 '._set_ipv4_network_details')
