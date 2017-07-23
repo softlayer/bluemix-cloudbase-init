@@ -495,7 +495,19 @@ class TestBluemixService(unittest.TestCase):
         network_data = {
             "networks": [
                 {
+                    "id": "network_2",
+                    "type": "ipv6",
+                    "routes": [
+                        {
+                            "network": "0:0:0:0:0:ffff:c0a8:102",
+                            "netmask": "0:0:0:0:0:ffff:ffff:ff00",
+                            "gateway": "0:0:0:0:0:ffff:c0a8:101"
+                        }
+                    ]
+                },
+                {
                     "id": "network_1",
+                    "type": "ipv4",
                     "routes": [
                         {
                             "network": "10.0.0.0",
