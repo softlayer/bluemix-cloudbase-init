@@ -117,6 +117,9 @@ class BluemixService(base.BaseHTTPMetadataService, baseos.BaseOpenStackService):
         network_data = self._get_network_data()
         routes_to_apply = []
         for network in network_data.get('networks', []):
+            # Currently only ipv4 routes are supported
+            if network.get('type') != 'ipv4':
+                continue
             routes = network.get('routes', [])
             for route in routes:
                 if route["network"] != "0.0.0.0" and route["network"] != '::':
