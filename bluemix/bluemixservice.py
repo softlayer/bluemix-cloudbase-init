@@ -22,6 +22,7 @@ from six.moves.urllib import error
 from netaddr import IPAddress
 
 from cloudbaseinit import constant
+from cloudbaseinit import exception
 from cloudbaseinit import conf as cloudbaseinit_conf
 from cloudbaseinit.metadata.services import base
 from cloudbaseinit.metadata.services import baseopenstackservice as baseos
