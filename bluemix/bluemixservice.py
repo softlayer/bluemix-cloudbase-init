@@ -307,6 +307,13 @@ class BluemixService(base.BaseHTTPMetadataService, baseos.BaseOpenStackService):
         """Returns the url used to post the password"""
         return 'SoftLayer_Resource_Configuration/setOsPasswordFromEncrypted'
 
+    def get_kms_host(self):
+        meta_data = self._get_meta_data()
+        kms_host = meta_data.get("kms_host")
+        LOG.info("Meta KMS host: %s", meta_data.get("kms_host"))
+        if kms_host:
+            return kms_host
+
     def cleanup(self):
         """Cleans up metadata path after completion"""
         LOG.debug('Deleting metadata folder: %r', self._mgr.target_path)
