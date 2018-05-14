@@ -22,7 +22,6 @@ from six.moves.urllib import error
 from netaddr import IPAddress
 
 from cloudbaseinit import constant
-from cloudbaseinit import exception
 from cloudbaseinit import conf as cloudbaseinit_conf
 from cloudbaseinit.metadata.services import base
 from cloudbaseinit.metadata.services import baseopenstackservice as baseos
@@ -255,11 +254,21 @@ class BluemixService(base.BaseHTTPMetadataService, baseos.BaseOpenStackService):
 
         return public_keys
 
+    def _get_endpoint(self, meta_data):
+        """Get the endpoint for posting the password"""
+        url = meta_data.get("endpoint_url")
+        if url is not None:
+            self._base_url = url
+            LOG.debug('Using endpoint from metadata ' + self._base_url)
+
+
     @property
     def can_post_password(self):
         """Called by the set user password plugin to allow service to post."""
         try:
-            self._get_meta_data()
+            meta_data = self._get_meta_data()
+            # Check if there is a different endpoint to use.
+            self._get_endpoint(meta_data)
             return True
         except base.NotExistingMetadataException:
             return False
@@ -269,6 +278,7 @@ class BluemixService(base.BaseHTTPMetadataService, baseos.BaseOpenStackService):
         try:
             path = self._get_password_path()
             action = lambda: self._post_data(path, enc_password_b64)
+            # self._get_endpoint()
             return self._exec_with_retry(action)
         except error.HTTPError as ex:
             raise

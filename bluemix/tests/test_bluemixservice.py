@@ -129,11 +129,19 @@ class TestBluemixService(unittest.TestCase):
             'SoftLayer_Resource_Configuration/setOsPasswordFromEncrypted',
             response)
 
+    def test_get_endpoint(self):
+        meta_data = {"endpoint_url": "test"}
+        self._service._get_endpoint(meta_data)
+        self.assertEqual(meta_data.get("endpoint_url"), self._service._base_url)
+
     @mock.patch('bluemix.bluemixservice.BluemixService._get_meta_data')
-    def test_can_post_password(self, mock_get_meta_data):
+    @mock.patch('bluemix.bluemixservice.BluemixService._get_endpoint')
+    def test_can_post_password(self, mock_get_meta_data, mock_get_endpoint):
         self.assertTrue(self._service.can_post_password)
+        mock_get_endpoint.assert_called_once()
         mock_get_meta_data.side_effect = base.NotExistingMetadataException
         self.assertFalse(self._service.can_post_password)
+
 
     @mock.patch('bluemix.bluemixservice.BluemixService._get_password_path')
     @mock.patch('bluemix.bluemixservice.BluemixService._post_data')
