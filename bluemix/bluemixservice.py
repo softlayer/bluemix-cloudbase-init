@@ -311,8 +311,8 @@ class BluemixService(base.BaseHTTPMetadataService, baseos.BaseOpenStackService):
     def get_kms_host(self):
         meta_data = self._get_meta_data()
         kms_host = meta_data.get("kms_host")
-        LOG.info("Meta KMS host: %s", meta_data.get("kms_host"))
         if kms_host:
+            LOG.info("Using KMS host from metadata: %s", meta_data.get("kms_host"))
             return kms_host
 
     def cleanup(self):
