@@ -255,11 +255,21 @@ class BluemixService(base.BaseHTTPMetadataService, baseos.BaseOpenStackService):
 
         return public_keys
 
+    def _get_endpoint(self, meta_data):
+        """Get the endpoint for posting the password"""
+        url = meta_data.get("endpoint_url")
+        if url is not None:
+            self._base_url = url
+            LOG.debug('Using endpoint from metadata ' + self._base_url)
+
+
     @property
     def can_post_password(self):
         """Called by the set user password plugin to allow service to post."""
         try:
-            self._get_meta_data()
+            meta_data = self._get_meta_data()
+            # Check if there is a different endpoint to use.
+            self._get_endpoint(meta_data)
             return True
         except base.NotExistingMetadataException:
             return False
@@ -296,6 +306,13 @@ class BluemixService(base.BaseHTTPMetadataService, baseos.BaseOpenStackService):
     def _get_password_path(self):
         """Returns the url used to post the password"""
         return 'SoftLayer_Resource_Configuration/setOsPasswordFromEncrypted'
+
+    def get_kms_host(self):
+        meta_data = self._get_meta_data()
+        kms_host = meta_data.get("kms_host")
+        if kms_host:
+            LOG.info("Using KMS host from metadata: %s", meta_data.get("kms_host"))
+            return kms_host
 
     def cleanup(self):
         """Cleans up metadata path after completion"""
