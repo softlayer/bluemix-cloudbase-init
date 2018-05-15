@@ -279,7 +279,6 @@ class BluemixService(base.BaseHTTPMetadataService, baseos.BaseOpenStackService):
         try:
             path = self._get_password_path()
             action = lambda: self._post_data(path, enc_password_b64)
-            # self._get_endpoint()
             return self._exec_with_retry(action)
         except error.HTTPError as ex:
             raise
