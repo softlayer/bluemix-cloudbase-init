@@ -235,25 +235,27 @@ class TestBluemixService(unittest.TestCase):
         self.assertEqual(64, nic.netmask6)
         self.assertEqual('0:0:0:0:0:ffff:c0a8:101', nic.gateway6)
 
-    def test_ipv6_netmask_to_prefix(self):
-        ip_address = mock.MagicMock()
-        ip_address.is_netmask.return_value = True
-        ip_address.netmask_bits.return_value = 64
+    @mock.patch('netaddr.IPAddress.is_netmask')
+    @mock.patch('netaddr.IPAddress.netmask_bits')
+    def test_ipv6_netmask_to_prefix(self, mock_netmask_bits, mock_is_netmask):
+        mock_is_netmask.return_value = True
+        mock_netmask_bits.return_value = 64
 
         self._service._ipv6_netmask_to_prefix(
             "ffff:ffff:ffff:ffff:0000:0000:0000:0000")
-        ip_address.is_netmask.assert_called_once()
-        ip_address.netmask_bits.assert_called_once()
+        mock_is_netmask.assert_called_once()
+        mock_netmask_bits.assert_called_once()
 
-    def test_ipv6_netmask_to_prefix_invalid_netmask(self):
-        ip_address = mock.MagicMock()
-        ip_address.is_netmask.return_value = False
-        ip_address.netmask_bits.return_value = False
+    @mock.patch('netaddr.IPAddress.is_netmask')
+    @mock.patch('netaddr.IPAddress.netmask_bits')
+    def test_ipv6_netmask_to_prefix_invalid_netmask(self, mock_netmask_bits, mock_is_netmask):
+        mock_is_netmask.return_value = False
+        mock_netmask_bits.return_value = False
 
         self._service._ipv6_netmask_to_prefix(
             "ffff:ffff:ffff:ffff:0000:0000:0000:0000")
-        ip_address.is_netmask.assert_called_once()
-        ip_address.netmask_bits.assert_called_never()
+        mock_is_netmask.assert_called_once()
+        mock_netmask_bits.assert_not_called()
 
     def test_set_ipv4_network_details(self):
         network = {
@@ -310,14 +312,7 @@ class TestBluemixService(unittest.TestCase):
                     "type": "ipv6",
                     "ip_address": "0:0:0:0:0:ffff:c0a8:102",
                     "netmask": "ffff:ffff:ffff:ffff:0000:0000:0000:0000"
-                },
-                {
-                    "id": "network_777777",
-                    "link": "interface_888888",
-                    "type": "ipv4",
-                    "ip_address": "192.168.1.3",
-                    "netmask": "255.255.255.0"
-                },
+                }
             ]
         }
 
@@ -543,3 +538,15 @@ class TestBluemixService(unittest.TestCase):
         self.assertEqual('192.168.0.0', response[1].get('network'))
         self.assertEqual('255.255.0.0', response[1].get('netmask'))
         self.assertEqual('192.168.0.12', response[1].get('gateway'))
+
+    @mock.patch('bluemix.bluemixservice.BluemixService._get_meta_data')
+    def test_get_kms_host(self, mock_get_meta_data):
+        mock_get_meta_data.return_value = {"kms_host": "test"}
+        kms_host = self._service.get_kms_host()
+        self.assertEqual(kms_host, "test")
+
+    @mock.patch('bluemix.bluemixservice.BluemixService._get_meta_data')
+    def test_get_kms_host_no_endpoint(self, mock_get_meta_data):
+        mock_get_meta_data.return_value = {"enpoint_url": "test"}
+        kms_host = self._service.get_kms_host()
+        self.assertEqual(kms_host, None)
